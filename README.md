@@ -13,6 +13,7 @@
 | `bookmarklet/` | マイリストからURLを取得するブックマークレットと、そのビルドスクリプト |
 | `admin/` | 管理者用スクリプト（通常は push しない） |
 | `tools/ogp.html` | 共有用サムネイル画像（`docs/ogp.png`）の元 |
+| `tools/x-images.html` / `tools/x-images/` | X告知用の画像4枚とその元 |
 
 ## 開発メモ
 
