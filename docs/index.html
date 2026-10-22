@@ -113,6 +113,7 @@
             </p>
             <a id="copy-btn" class="btn-main" href="#" target="_blank">📄 スプレッドシートをコピーして使う</a>
             <p class="hero-note">Googleアカウントが必要です（無料）。コピーしたファイルは自分のGoogleドライブに保存されます。</p>
+            <p class="hero-note">すでに使っている方へ：新しいバージョンへの乗り換え方は<a href="#version-up">こちら</a></p>
         </section>
 
         <!-- ===== できること ===== -->
@@ -212,6 +213,42 @@
         </section>
 
         <!-- ===== ブックマークレット ===== -->
+        <section class="section" id="version-up">
+            <h2 class="section-title">新しいバージョンが出たら</h2>
+            <p class="section-desc">不具合の修正や機能の追加をしたときは、新しいバージョンとして公開します。コピー済みのスプレッドシートは自動では新しくならないので、次の手順で乗り換えてください。</p>
+            <ol class="steps">
+                <li class="step">
+                    <p class="step-title">新しいバージョンが出たか確認する</p>
+                    <p>次のどれかで確認できます。</p>
+                    <ul>
+                        <li>コンバートや一括更新が終わったときのメッセージに「<b>🆕 新しいバージョン（v〇.〇.〇）が公開されています</b>」と表示される</li>
+                        <li>メニューの <span class="menu-path">📥 コンバート</span> → <span class="menu-path">バージョン情報・更新の確認</span> を押す</li>
+                        <li>このページ上部の「<b>最新版</b>」の番号と見比べる（変更内容は、ページ下の最終更新日を押すと見られます）</li>
+                    </ul>
+                </li>
+                <li class="step">
+                    <p class="step-title">新しいスプレッドシートをコピーする</p>
+                    <p>このページの「<b>スプレッドシートをコピーして使う</b>」から、もう一度コピーします。はじめて使うときと同じく、初回だけGoogleの許可画面が出ます。</p>
+                </li>
+                <li class="step">
+                    <p class="step-title">古いスプレッドシートからURLを移す</p>
+                    <ol>
+                        <li>古いスプレッドシートの「<b>シート一覧</b>」シートを開く</li>
+                        <li><b>B2セル</b>を選び、<span class="key">Ctrl</span> + <span class="key">Shift</span> + <span class="key">↓</span>（Macは <span class="key">⌘</span> + <span class="key">Shift</span> + <span class="key">↓</span>）でURLの一番下まで選んでコピーする</li>
+                        <li>新しいスプレッドシートの「<b>コンバートURL入力</b>」シートの <b>B2セル</b> に貼り付ける</li>
+                        <li><span class="menu-path">URLからコンバート</span> を押す（キャラが多いときは、何回か実行すると続きから処理されます）</li>
+                    </ol>
+                </li>
+                <li class="step">
+                    <p class="step-title">古いスプレッドシートを片付ける</p>
+                    <p>新しい方で全キャラ移せたことを確認したら、古いスプレッドシートは削除してかまいません。念のためしばらく残しておいても大丈夫です。</p>
+                </li>
+            </ol>
+            <div class="note-box warn">
+                キャラのシートに<b>自分で書き込んだメモや、変更した設定</b>（チャパレの設定など）は、新しいスプレッドシートには移りません。必要なものは、古いスプレッドシートから控えておいてください。
+            </div>
+        </section>
+
         <section class="section" id="bookmarklet">
             <h2 class="section-title">マイリストからURLをまとめて取得</h2>
             <p class="section-desc">キャラクター保管所のマイリストにある全キャラのURLを、ボタン一つでコピーできます。（パソコンのブラウザ向け）</p>
@@ -287,7 +324,7 @@
                 <summary>新しいバージョンが出たら、どうすればいいですか？</summary>
                 <div class="answer">
                     <p>新しい版が出ると、コンバート完了時のメッセージでお知らせします。（<span class="menu-path">バージョン情報・更新の確認</span> からも確認できます）</p>
-                    <p>乗り換えるときは、このページから新しいスプレッドシートをコピーし、古いスプレッドシートの「<b>シート一覧</b>」のB列（URL）をコピーして、新しい方の「コンバートURL入力」に貼り付けてコンバートしてください。</p>
+                    <p>乗り換え方は「<a href="#version-up">新しいバージョンが出たら</a>」で詳しく説明しています。古いスプレッドシートの「シート一覧」にあるURLを、新しいスプレッドシートに貼ってコンバートするだけで移せます。</p>
                 </div>
             </details>
             <details>
