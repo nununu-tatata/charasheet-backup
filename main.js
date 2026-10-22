@@ -18,7 +18,7 @@ function onOpen() {
 // 配布ページの version.json と比較し、新しい版があれば知らせる
 // 新しい版を配布するときは SCRIPT_VERSION と docs/version.json の両方を更新する
 // ============================================================
-const SCRIPT_VERSION = '1.1.2';
+const SCRIPT_VERSION = '1.1.3';
 const DISTRIBUTION_PAGE_URL = 'https://nununu-tatata.github.io/charasheet-backup/';
 const UPDATE_INFO_URL = DISTRIBUTION_PAGE_URL + 'version.json';
 
@@ -869,6 +869,10 @@ function updateListSheet_(listSheet, listRow, targetSheet, data, id, url, sheetN
     const linkLabel = (pcName || sheetName).toString().replace(/"/g, '""');
     const hyperlinkFormula = `=HYPERLINK("#gid=${targetSheet.getSheetId()}", "${linkLabel}")`;
 
+    // 能力値は今の値（NP：成長・増減を含む）を使い、なければ作成時の値（NA）を使う
+    // アイデア・幸運・知識や技能も今の値なので、一覧の中で食い違わないようにそろえる
+    const current = n => data['NP' + n] || data['NA' + n] || "";
+
     const listData = [
         id,                 // A: ID
         url,                // B: URL
@@ -877,19 +881,19 @@ function updateListSheet_(listSheet, listRow, targetSheet, data, id, url, sheetN
         formattedDate,      // E: 更新日
         data.pc_tags || "", // F: タグ
         data.SAN_Left || "",// G: 現在SAN
-        data.NA1 || "",     // H: STR
-        data.NA2 || "",     // I: CON
-        data.NA3 || "",     // J: POW
-        data.NA4 || "",     // K: DEX
-        data.NA5 || "",     // L: APP
-        data.NA6 || "",     // M: SIZ
-        data.NA7 || "",     // N: INT
-        data.NA8 || "",     // O: EDU
-        data.NA9 || "",     // P: HP
-        data.NA10 || "",    // Q: MP
-        data.NA12 || "",    // R: アイデア
-        data.NA13 || "",    // S: 幸運
-        data.NA14 || "",    // T: 知識
+        current(1),         // H: STR
+        current(2),         // I: CON
+        current(3),         // J: POW
+        current(4),         // K: DEX
+        current(5),         // L: APP
+        current(6),         // M: SIZ
+        current(7),         // N: INT
+        current(8),         // O: EDU
+        current(9),         // P: HP
+        current(10),        // Q: MP
+        current(12),        // R: アイデア
+        current(13),        // S: 幸運
+        current(14),        // T: 知識
         ...pickSkills('TBAP', 12), // U〜AF: 戦闘技能
         ...pickSkills('TFAP', 12), // AG〜AR: 探索技能
         ...pickSkills('TAAP', 11), // AS〜BC: 行動技能
