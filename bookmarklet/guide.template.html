@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<base target="_blank">
+<style>
+  body { font-family: "Hiragino Sans", "Meiryo", sans-serif; color: #222; font-size: 14px; line-height: 1.7; margin: 0; padding: 4px 8px 16px; }
+  h2 { font-size: 16px; margin: 18px 0 6px; padding-left: 8px; border-left: 4px solid #2b6cb0; }
+  ol { padding-left: 1.4em; margin: 6px 0; }
+  li { margin-bottom: 6px; }
+  .bm { display: inline-block; padding: 8px 18px; margin: 4px 0; background: #2b6cb0; color: #fff !important; border-radius: 6px; font-weight: bold; text-decoration: none; cursor: grab; }
+  .key { display: inline-block; padding: 0 6px; border: 1px solid #aaa; border-bottom-width: 2px; border-radius: 4px; background: #f6f6f6; font-size: 12px; }
+  .note { background: #fff8e1; border: 1px solid #f0d58a; border-radius: 6px; padding: 8px 12px; margin: 10px 0; font-size: 13px; }
+  details { margin-top: 14px; font-size: 13px; }
+  summary { cursor: pointer; color: #2b6cb0; }
+  textarea { width: 100%; height: 80px; box-sizing: border-box; font-size: 11px; font-family: monospace; }
+  button { padding: 6px 14px; margin-top: 4px; cursor: pointer; }
+</style>
+</head>
+<body>
+  <div class="note">キャラクター保管所の<b>マイリスト</b>から、自分のキャラシのURLをまとめてコピーできます。<br>パソコンのブラウザ（Chrome / Edge / Firefox など）で使ってください。</div>
+
+  <h2>① 最初に一度だけ：ブックマークに登録</h2>
+  <ol>
+    <li>ブラウザのブックマークバーを表示します。<br>（表示されていない場合は <span class="key">Ctrl</span> + <span class="key">Shift</span> + <span class="key">B</span>、Macは <span class="key">⌘</span> + <span class="key">Shift</span> + <span class="key">B</span>）</li>
+    <li>下の青いボタンを、<b>マウスでつかんでブックマークバーまでドラッグ</b>します。<br>
+      <a class="bm" href="{{HREF}}" onclick="alert('ここではクリックせず、ブックマークバーへドラッグして登録してください。'); return false;">キャラシURL抽出</a>
+    </li>
+  </ol>
+
+  <h2>② URLを取り出す</h2>
+  <ol>
+    <li>キャラクター保管所に<b>ログイン</b>して、<a href="https://charasheet.vampire-blood.net/mylist">マイリスト</a>を開きます。</li>
+    <li>ブックマークバーの「<b>キャラシURL抽出</b>」をクリックします。</li>
+    <li>全ページの読み込みが終わると一覧が出るので、「<b>コピーする</b>」を押します。</li>
+  </ol>
+
+  <h2>③ スプレッドシートでコンバート</h2>
+  <ol>
+    <li>「<b>コンバートURL入力</b>」シートの <b>B2セル</b> を選んで貼り付けます（<span class="key">Ctrl</span> + <span class="key">V</span>）。</li>
+    <li>メニューの「📥 コンバート」→「<b>URLからコンバート</b>」を実行します。</li>
+  </ol>
+
+  <div class="note">
+    件数が多いと、Googleの制限（1回6分まで）で途中で止まることがあります。<br>
+    そのときは、もう一度「URLからコンバート」を実行すれば<b>続きから</b>処理されます。（終わったURLは入力欄から自動で消えます）
+  </div>
+
+  <details>
+    <summary>ドラッグで登録できないときは</summary>
+    <ol>
+      <li>下の「コードをコピー」を押します。</li>
+      <li>ブックマークバーで右クリック →「ページを追加」（ブラウザによっては「ブックマークを追加」）を選びます。</li>
+      <li>名前に「キャラシURL抽出」、URL欄にコピーしたコードを貼り付けて保存します。</li>
+    </ol>
+    <textarea id="code" readonly>{{HREF_ESCAPED}}</textarea>
+    <button onclick="const t=document.getElementById('code');t.select();document.execCommand('copy');this.textContent='✅ コピーしました';">コードをコピー</button>
+  </details>
+</body>
+</html>
