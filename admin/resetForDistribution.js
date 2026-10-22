@@ -16,7 +16,15 @@ function resetForDistribution() {
     );
     if (answer !== ui.Button.YES) return;
 
-    targets.forEach(s => ss.deleteSheet(s));
+    // 一気に削除するとスプレッドシートのサービスとの接続が切れるため、10枚ごとに反映して少し待つ
+    // 途中で止まっても、もう一度実行すれば残りのシートだけが対象になる
+    targets.forEach((s, i) => {
+        ss.deleteSheet(s);
+        if ((i + 1) % 10 === 0) {
+            SpreadsheetApp.flush();
+            Utilities.sleep(1000);
+        }
+    });
 
     // シート一覧はヘッダー（1行目）だけ残す
     const listSheet = ss.getSheetByName('シート一覧');
