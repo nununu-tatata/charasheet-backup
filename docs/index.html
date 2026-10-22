@@ -231,13 +231,21 @@
                     <p>このページの「<b>スプレッドシートをコピーして使う</b>」から、もう一度コピーします。はじめて使うときと同じく、初回だけGoogleの許可画面が出ます。</p>
                 </li>
                 <li class="step">
-                    <p class="step-title">古いスプレッドシートからURLを移す</p>
+                    <p class="step-title">古いスプレッドシートからキャラを移す</p>
                     <ol>
-                        <li>古いスプレッドシートの「<b>シート一覧</b>」シートを開く</li>
-                        <li><b>B2セル</b>を選び、<span class="key">Ctrl</span> + <span class="key">Shift</span> + <span class="key">↓</span>（Macは <span class="key">⌘</span> + <span class="key">Shift</span> + <span class="key">↓</span>）でURLの一番下まで選んでコピーする</li>
-                        <li>新しいスプレッドシートの「<b>コンバートURL入力</b>」シートの <b>B2セル</b> に貼り付ける</li>
+                        <li>古いスプレッドシートを開き、ブラウザのアドレス欄の<b>URLをコピー</b>する</li>
+                        <li>新しいスプレッドシートで、メニューの <span class="menu-path">📥 コンバート</span> → <span class="menu-path">古いスプレッドシートから引っ越す</span> を押す</li>
+                        <li>出てきた入力欄に、古いスプレッドシートのURLを貼り付けて「<b>OK</b>」を押す（全キャラのURLが「コンバートURL入力」に移ります。古いスプレッドシートは変更されません）</li>
                         <li><span class="menu-path">URLからコンバート</span> を押す（キャラが多いときは、何回か実行すると続きから処理されます）</li>
                     </ol>
+                    <details>
+                        <summary style="cursor:pointer; font-size:12px; color:var(--primary-color);">メニューに「古いスプレッドシートから引っ越す」がないときは（手作業で移す方法）</summary>
+                        <ol>
+                            <li>古いスプレッドシートの「<b>シート一覧</b>」シートを開く</li>
+                            <li><b>B2セル</b>を選び、<span class="key">Ctrl</span> + <span class="key">Shift</span> + <span class="key">↓</span>（Macは <span class="key">⌘</span> + <span class="key">Shift</span> + <span class="key">↓</span>）でURLの一番下まで選んでコピーする</li>
+                            <li>新しいスプレッドシートの「<b>コンバートURL入力</b>」シートの <b>B2セル</b> に貼り付ける</li>
+                        </ol>
+                    </details>
                 </li>
                 <li class="step">
                     <p class="step-title">古いスプレッドシートを片付ける</p>
@@ -338,7 +346,7 @@
                 <summary>新しいバージョンが出たら、どうすればいいですか？</summary>
                 <div class="answer">
                     <p>新しい版が出ると、コンバート完了時のメッセージでお知らせします。（<span class="menu-path">バージョン情報・更新の確認</span> からも確認できます）</p>
-                    <p>乗り換え方は「<a href="#version-up">新しいバージョンが出たら</a>」で詳しく説明しています。古いスプレッドシートの「シート一覧」にあるURLを、新しいスプレッドシートに貼ってコンバートするだけで移せます。</p>
+                    <p>乗り換え方は「<a href="#version-up">新しいバージョンが出たら</a>」で詳しく説明しています。新しいスプレッドシートのメニュー <span class="menu-path">古いスプレッドシートから引っ越す</span> に古いスプレッドシートのURLを貼れば、全キャラのURLをまとめて移せます。</p>
                 </div>
             </details>
             <details>
