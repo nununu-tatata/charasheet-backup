@@ -330,3 +330,12 @@ header { flex-wrap: wrap; gap: 12px; }
     .step { padding-left: 50px; }
     .step::before { left: 12px; }
 }
+
+/* 手順内のおすすめ案内 */
+.tip-box {
+    background: var(--element-bg); border: 2px solid var(--primary-color);
+    border-radius: var(--border-radius); padding: 12px 14px; margin: 10px 0 4px;
+}
+.step .tip-box p { margin: 4px 0; }
+.step .tip-box .tip-title { font-weight: 700; font-size: 14px; color: var(--primary-color); margin: 0 0 4px; }
+.tip-box .btn-sub { display: inline-block; text-decoration: none; margin-top: 8px; }
