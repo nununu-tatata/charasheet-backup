@@ -16,7 +16,7 @@ function onOpen() {
 // 配布ページの version.json と比較し、新しい版があれば知らせる
 // 新しい版を配布するときは SCRIPT_VERSION と docs/version.json の両方を更新する
 // ============================================================
-const SCRIPT_VERSION = '1.0.0';
+const SCRIPT_VERSION = '1.0.1';
 const DISTRIBUTION_PAGE_URL = 'https://nununu-tatata.github.io/charasheet-backup/';
 const UPDATE_INFO_URL = DISTRIBUTION_PAGE_URL + 'version.json';
 
@@ -74,8 +74,48 @@ function showBookmarkletGuide() {
 }
 
 // ============================================================
+// チャパレ・プロフィール欄の位置
+// テンプレートでの行番号。持ち物・武器・追加技能が多いキャラは途中で行を挿入するため、
+// 実際の位置は「挿入した行数（AB3に保存）」だけ下にずれる
+// ============================================================
+const PALETTE_SETTING_ROW = 164; // チャパレ設定（B/E/H/K/N/Q列）
+const PROFILE_SETTING_ROW = 168; // プロフィール設定（B/E/H/K/N/Q列）
+const PALETTE_OUTPUT_ROW = 171;  // チャパレ（B列）・プロフィール（N列）
+const CCFOLIA_OUTPUT_ROW = 180;  // CCFOLIAデータ（B列）
+
+// 設定セルからチャパレ・プロフィールの設定を読み取る
+function readPaletteSettings_(sheet, rowOffset) {
+    const palRow = PALETTE_SETTING_ROW + rowOffset;
+    const profRow = PROFILE_SETTING_ROW + rowOffset;
+    const get = cell => sheet.getRange(cell).getValue().toString().trim();
+    const tekeyMode = get(`K${palRow}`);
+    return {
+        diceCommand:             get(`B${palRow}`) || 'CCB',
+        isOutputAll:             get(`E${palRow}`) === '全技能',
+        isAddBrackets:           get(`H${palRow}`) === 'ON',
+        isUseFolding:            tekeyMode === 'Tekey向け',
+        includeStatVariables:    tekeyMode === 'Tekey向け',
+        includeStatx5:           get(`N${palRow}`) === 'ON',
+        includeStatRes:          get(`Q${palRow}`) === 'ON',
+        includeStatusProfile:    get(`B${profRow}`) !== 'OFF',
+        includeSkillListProfile: get(`E${profRow}`) !== 'OFF',
+        includeTraits:           get(`H${profRow}`) === 'ON',
+        includeWeaponsProfile:   get(`K${profRow}`) !== 'OFF',
+        includeItems:            get(`N${profRow}`) !== 'OFF',
+        includePersonalData:     get(`Q${profRow}`) === 'ON',
+    };
+}
+
+// 生成したチャパレ・プロフィール・CCFOLIAデータを書き込む
+function writePaletteResult_(sheet, rowOffset, result) {
+    sheet.getRange(`B${PALETTE_OUTPUT_ROW + rowOffset}`).setValue(result.palette);
+    sheet.getRange(`N${PALETTE_OUTPUT_ROW + rowOffset}`).setValue(result.profile);
+    sheet.getRange(`B${CCFOLIA_OUTPUT_ROW + rowOffset}`).setValue(result.ccfoliaJson);
+}
+
+// ============================================================
 // onEdit トリガー：設定セルが変更されたらチャパレ・プロフを自動再生成
-// 対象セル: Row 164（B/E/H/K列）、Row 168（B/E/H/K/N/Q列）
+// 対象セル: チャパレ設定行（B/E/H/K列）、プロフィール設定行（B/E/H/K/N/Q列）
 // ============================================================
 function onEdit(e) {
     if (!e) return;
@@ -83,38 +123,21 @@ function onEdit(e) {
     const col = e.range.getColumn();
     const sheet = e.range.getSheet();
 
-    // 設定エリアのセルかどうか判定
-    const isPalRow = (row === 164 && [2,5,8,11].includes(col));
-    const isProfRow = (row === 168 && [2,5,8,11,14,17].includes(col));
-    if (!isPalRow && !isProfRow) return;
-
-    // AB1に保存されたJSONを取得
+    // AB1に保存されたJSONを取得（コンバートしたキャラのシート以外は対象外）
     const storedJson = sheet.getRange('AB1').getValue();
-    const storedUrl  = sheet.getRange('AB2').getValue();
     if (!storedJson || storedJson === '') return;
+    const rowOffset = Number(sheet.getRange('AB3').getValue()) || 0;
+
+    // 設定エリアのセルかどうか判定
+    const isPalRow = (row === PALETTE_SETTING_ROW + rowOffset && [2,5,8,11].includes(col));
+    const isProfRow = (row === PROFILE_SETTING_ROW + rowOffset && [2,5,8,11,14,17].includes(col));
+    if (!isPalRow && !isProfRow) return;
 
     try {
         const data = JSON.parse(storedJson);
-        const tekeyMode = sheet.getRange('K164').getValue().toString().trim();
-        const palSettings = {
-            diceCommand:             sheet.getRange('B164').getValue().toString().trim() || 'CCB',
-            isOutputAll:             sheet.getRange('E164').getValue().toString().trim() === '全技能',
-            isAddBrackets:           sheet.getRange('H164').getValue().toString().trim() === 'ON',
-            isUseFolding:            tekeyMode === 'Tekey向け',
-            includeStatVariables:    tekeyMode === 'Tekey向け',
-            includeStatx5:           sheet.getRange('N164').getValue().toString().trim() === 'ON',
-            includeStatRes:          sheet.getRange('Q164').getValue().toString().trim() === 'ON',
-            includeStatusProfile:    sheet.getRange('B168').getValue().toString().trim() !== 'OFF',
-            includeSkillListProfile: sheet.getRange('E168').getValue().toString().trim() !== 'OFF',
-            includeTraits:           sheet.getRange('H168').getValue().toString().trim() === 'ON',
-            includeWeaponsProfile:   sheet.getRange('K168').getValue().toString().trim() !== 'OFF',
-            includeItems:            sheet.getRange('N168').getValue().toString().trim() !== 'OFF',
-            includePersonalData:     sheet.getRange('Q168').getValue().toString().trim() === 'ON',
-        };
-        const result = generateChatPaletteData(data, storedUrl.toString(), palSettings);
-        sheet.getRange('B171').setValue(result.palette);
-        sheet.getRange('N171').setValue(result.profile);
-        sheet.getRange('B180').setValue(result.ccfoliaJson);
+        const storedUrl = sheet.getRange('AB2').getValue();
+        const result = generateChatPaletteData(data, storedUrl.toString(), readPaletteSettings_(sheet, rowOffset));
+        writePaletteResult_(sheet, rowOffset, result);
     } catch (err) {
         Logger.log('onEdit チャパレ再生成エラー: ' + err.message);
     }
@@ -322,8 +345,8 @@ function convertOneUrl(ss, inputUrl, responseText) {
     // 新しいシートへの書き込みが成功してから旧シートと差し替える（途中で失敗しても旧シートが消えないように）
     const targetSheet = templateSheet.copyTo(ss);
     try {
-        writeCharacterData_(targetSheet, data);
-        writeChatPalette_(targetSheet, data, url, responseText);
+        const insertedRows = writeCharacterData_(targetSheet, data);
+        writeChatPalette_(targetSheet, data, url, responseText, insertedRows);
     } catch (e) {
         ss.deleteSheet(targetSheet);
         throw e;
@@ -400,8 +423,11 @@ function decideSheetName_(ss, data, id, oldSheet) {
 
 // ============================================================
 // キャラクターデータをシートに書き込む
+// 戻り値：挿入した行数（その下にあるチャパレ欄がずれる行数）
 // ============================================================
 function writeCharacterData_(targetSheet, data) {
+    let insertedRows = 0;
+
     // --- 3. 基礎ステータス・ポイント・プロフィールの書き込み ---
     function getDiff(baseKey, currentKey) {
         const base = parseInt(data[baseKey]) || 0;
@@ -499,6 +525,7 @@ function writeCharacterData_(targetSheet, data) {
         let rowNum = 113 + writtenItemCount;
         if (writtenItemCount >= 20) { // 21個目以降は行を挿入
             targetSheet.insertRowAfter(rowNum - 1);
+            insertedRows++;
             let prevRowRange = targetSheet.getRange(`${rowNum - 1}:${rowNum - 1}`);
             let newRowRange = targetSheet.getRange(`${rowNum}:${rowNum}`);
             prevRowRange.copyTo(newRowRange, SpreadsheetApp.CopyPasteType.PASTE_NORMAL, false);
@@ -536,6 +563,7 @@ function writeCharacterData_(targetSheet, data) {
         let rowNum = 104 + writtenWeaponCount;
         if (writtenWeaponCount >= 6) { // 7個目以降は行を挿入
             targetSheet.insertRowAfter(rowNum - 1);
+            insertedRows++;
             let prevRowRange = targetSheet.getRange(`${rowNum - 1}:${rowNum - 1}`);
             let newRowRange = targetSheet.getRange(`${rowNum}:${rowNum}`);
             prevRowRange.copyTo(newRowRange, SpreadsheetApp.CopyPasteType.PASTE_NORMAL, false);
@@ -711,6 +739,7 @@ function writeCharacterData_(targetSheet, data) {
             for (let k = 0; k < diff; k++) {
                 // 最後の空き枠の「上」に挿入することで、グループ化の範囲内に強制的に含める
                 targetSheet.insertRowBefore(insertRow);
+                insertedRows++;
 
                 // コピー元を決定。枠の途中（firstSlotRow）からコピーすることで、末尾の太枠が連続するのを防ぎチェックボックスを維持する
                 // slotsが1つしかない場合は、挿入によって元の行が下にズレていくため補正する
@@ -739,6 +768,7 @@ function writeCharacterData_(targetSheet, data) {
             for (let k = 0; k < diff; k++) {
                 let rowNum = insertAtRow + k + 1;
                 targetSheet.insertRowAfter(rowNum - 1);
+                insertedRows++;
 
                 // 最後のデフォルト技能が太枠を持っている場合を避けるため、1つ上（通常の枠）から書式をコピー
                 let sourceRow = (insertAtRow > 18) ? (insertAtRow - 1) : insertAtRow;
@@ -775,6 +805,8 @@ function writeCharacterData_(targetSheet, data) {
             if (skill.other > 0) targetSheet.getRange(`J${rowNum}`).setValue(skill.other);
         }
     });
+
+    return insertedRows;
 }
 
 // ============================================================
@@ -861,38 +893,17 @@ function updateListSheet_(listSheet, listRow, targetSheet, data, id, url, sheetN
 // ============================================================
 // チャットパレット・プロフィール・CCFOLIAデータの生成
 // ============================================================
-function writeChatPalette_(targetSheet, data, url, responseText) {
+function writeChatPalette_(targetSheet, data, url, responseText, rowOffset) {
     try {
-        // テンプレートから設定を読み取る
-        const tekeyMode2 = targetSheet.getRange('K164').getValue().toString().trim();
-        const palSettings = {
-            diceCommand:            targetSheet.getRange('B164').getValue().toString().trim() || 'CCB',
-            isOutputAll:            targetSheet.getRange('E164').getValue().toString().trim() === '全技能',
-            isAddBrackets:          targetSheet.getRange('H164').getValue().toString().trim() === 'ON',
-            isUseFolding:           tekeyMode2 === 'Tekey向け',
-            includeStatVariables:   tekeyMode2 === 'Tekey向け',
-            includeStatx5:          targetSheet.getRange('N164').getValue().toString().trim() === 'ON',
-            includeStatRes:         targetSheet.getRange('Q164').getValue().toString().trim() === 'ON',
-            // プロフィール設定（Row 168）
-            includeStatusProfile:   targetSheet.getRange('B168').getValue().toString().trim() !== 'OFF',
-            includeSkillListProfile:targetSheet.getRange('E168').getValue().toString().trim() !== 'OFF',
-            includeTraits:          targetSheet.getRange('H168').getValue().toString().trim() === 'ON',
-            includeWeaponsProfile:  targetSheet.getRange('K168').getValue().toString().trim() !== 'OFF',
-            includeItems:           targetSheet.getRange('N168').getValue().toString().trim() !== 'OFF',
-            includePersonalData:    targetSheet.getRange('Q168').getValue().toString().trim() === 'ON',
-        };
-
+        // テンプレートから設定を読み取る（行を挿入した分だけ下にずれている）
+        const palSettings = readPaletteSettings_(targetSheet, rowOffset);
         const paletteResult = generateChatPaletteData(data, url, palSettings);
+        writePaletteResult_(targetSheet, rowOffset, paletteResult);
 
-        // チャットパレット → B171
-        targetSheet.getRange('B171').setValue(paletteResult.palette);
-        // プロフィールテキスト → N171
-        targetSheet.getRange('N171').setValue(paletteResult.profile);
-        // CCFOLIAデータ → B180
-        targetSheet.getRange('B180').setValue(paletteResult.ccfoliaJson);
-        // onEdit再生成用にJSONとURLをAB1/AB2に保存（ネット不要でオフライン対応）
+        // onEdit再生成用にJSON・URL・行のずれをAB1〜AB3に保存（ネット不要でオフライン対応）
         targetSheet.getRange('AB1').setValue(responseText);
         targetSheet.getRange('AB2').setValue(url);
+        targetSheet.getRange('AB3').setValue(rowOffset);
     } catch (palErr) {
         // チャパレ生成に失敗しても本体のコンバートは完了しているのでエラーログのみ
         Logger.log('チャパレ生成エラー: ' + palErr.message);
