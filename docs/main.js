@@ -6,10 +6,16 @@
 // 空欄のあいだは「準備中」と表示する
 const SPREADSHEET_COPY_URL = 'https://docs.google.com/spreadsheets/d/1hEHd0JRUxbp1wAb3k7IVArZElsJWIxQZFwCcSxBGsws/copy';
 
+// --- アクセス解析のイベント記録（広告ブロック等で gtag がない場合は何もしない） ---
+function trackEvent(name, params) {
+    if (typeof gtag === 'function') gtag('event', name, params || {});
+}
+
 // --- コピーボタン ---
 const copyBtn = document.getElementById('copy-btn');
 if (SPREADSHEET_COPY_URL) {
     copyBtn.href = SPREADSHEET_COPY_URL;
+    copyBtn.addEventListener('click', () => trackEvent('copy_spreadsheet'));
 } else {
     copyBtn.classList.add('disabled');
     copyBtn.textContent = '📄 準備中です';
@@ -38,6 +44,7 @@ const bookmarkletLink = document.getElementById('bookmarklet-link');
 const bookmarkletCode = document.getElementById('bookmarklet-code');
 bookmarkletLink.href = BOOKMARKLET_HREF;
 bookmarkletCode.value = BOOKMARKLET_HREF;
+bookmarkletLink.addEventListener('dragstart', () => trackEvent('drag_bookmarklet'));
 bookmarkletLink.addEventListener('click', e => {
     e.preventDefault();
     alert('このボタンはクリックせず、ブックマークバーへドラッグして登録してください。\n\n登録したら、キャラクター保管所のマイリストを開いてからブックマークを押してください。');
@@ -45,6 +52,7 @@ bookmarkletLink.addEventListener('click', e => {
 document.getElementById('bookmarklet-copy').addEventListener('click', e => {
     navigator.clipboard.writeText(BOOKMARKLET_HREF).then(() => {
         e.target.textContent = '✅ コピーしました';
+        trackEvent('copy_bookmarklet_code');
     });
 });
 
