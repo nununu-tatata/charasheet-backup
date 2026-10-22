@@ -18,7 +18,7 @@ function onOpen() {
 // 配布ページの version.json と比較し、新しい版があれば知らせる
 // 新しい版を配布するときは SCRIPT_VERSION と docs/version.json の両方を更新する
 // ============================================================
-const SCRIPT_VERSION = '1.1.0';
+const SCRIPT_VERSION = '1.1.1';
 const DISTRIBUTION_PAGE_URL = 'https://nununu-tatata.github.io/charasheet-backup/';
 const UPDATE_INFO_URL = DISTRIBUTION_PAGE_URL + 'version.json';
 
@@ -258,6 +258,7 @@ function updateAllSheets_() {
     let timedOut = false;
     let quotaExceeded = false;
     const errorMessages = [];
+    const processedKeys = new Set();
 
     for (let i = 0; i < allRows.length; i++) {
         if (Date.now() - startTime > TIME_LIMIT_MS) {
@@ -284,6 +285,9 @@ function updateAllSheets_() {
             errorMessages.push(`${listRowNum}行目: ${e.message}`);
             continue;
         }
+        // 古い版で同じキャラが2行登録されていることがあるため、同じキャラは1回だけ処理する
+        if (processedKeys.has(key)) continue;
+        processedKeys.add(key);
 
         // サーバー負荷軽減のためリクエスト前に少し待機（500ms）
         Utilities.sleep(500);
@@ -1096,15 +1100,22 @@ function importFromOldSpreadsheet_() {
     }
 
     const newUrls = [];
+    const seenInOld = new Set();
+    let duplicateCount = 0; // 古い一覧の中で同じキャラが2回以上登録されていた数
+    let knownCount = 0;     // このスプレッドシートに登録済み・入力済みだった数
     oldUrls.forEach(u => {
         const k = keyOf(u);
-        if (knownKeys.has(k)) return;
-        knownKeys.add(k);
+        if (seenInOld.has(k)) { duplicateCount++; return; }
+        seenInOld.add(k);
+        if (knownKeys.has(k)) { knownCount++; return; }
         newUrls.push(u);
     });
+    const skippedNote =
+        (knownCount > 0 ? `\n（${knownCount} 件は、このスプレッドシートに登録済み・入力済みのため追加していません）` : '') +
+        (duplicateCount > 0 ? `\n（${duplicateCount} 件は、古いスプレッドシートの一覧で同じキャラが重複していたため、1つにまとめました）` : '');
 
     if (newUrls.length === 0) {
-        ui.alert(`古いスプレッドシートの ${oldUrls.length} 件は、すべてこのスプレッドシートに登録済み（または入力済み）です。`);
+        ui.alert(`追加するURLはありませんでした。${skippedNote}`);
         return;
     }
 
@@ -1113,8 +1124,7 @@ function importFromOldSpreadsheet_() {
     inputSheet.getRange(startRow, 2, newUrls.length, 1).setValues(newUrls.map(u => [u]));
 
     let msg = `「${oldSpreadsheet.getName()}」から ${newUrls.length} 件のURLを「${INPUT_SHEET_NAME}」に移しました。`;
-    const skipped = oldUrls.length - newUrls.length;
-    if (skipped > 0) msg += `\n（${skipped} 件は登録済み・入力済みのため追加していません）`;
+    msg += skippedNote;
     msg += '\n\n続けて、メニューの「URLからコンバート」を押してください。\nキャラが多いときは、何回か実行すると続きから処理されます。';
     ui.alert(msg);
 }
