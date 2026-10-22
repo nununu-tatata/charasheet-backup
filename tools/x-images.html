@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<!-- X告知用の画像（1200x675）の元。リポジトリのルートをローカルサーバーで配信し、/tools/x-images.html?p=1〜4 をそれぞれスクリーンショットする -->
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=Zen+Maru+Gothic:wght@700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #8c7b75; --primary-dark: #6d5f5a; --bg: #fdfbf7; --card: #ffffff;
+    --text: #5d5d5d; --sub: #999999; --border: #e0dcd0; --element: #f8f6f2;
+  }
+  html, body { margin: 0; width: 1200px; height: 675px; overflow: hidden; background: var(--bg); }
+  body { font-family: 'Noto Sans JP', sans-serif; color: var(--text); }
+  .panel { display: none; position: relative; width: 1200px; height: 675px; box-sizing: border-box; }
+  .panel.show { display: block; }
+  .maru { font-family: 'Zen Maru Gothic', sans-serif; font-weight: 900; }
+
+  /* 共通：見出しとフッター */
+  .head { position: absolute; top: 44px; left: 60px; right: 60px; }
+  .kicker { display: inline-block; font-size: 20px; font-weight: 700; color: #fff; background: var(--primary);
+            border-radius: 20px; padding: 4px 18px; margin-bottom: 10px; }
+  .title { font-size: 56px; color: var(--primary); margin: 0; line-height: 1.2; }
+  .foot { position: absolute; left: 0; right: 0; bottom: 0; height: 58px; background: var(--primary);
+          color: #fff; display: flex; align-items: center; justify-content: space-between; padding: 0 60px; box-sizing: border-box; }
+  .foot .name { font-family: 'Zen Maru Gothic', sans-serif; font-weight: 900; font-size: 24px; }
+  .foot .url { font-size: 18px; font-weight: 500; opacity: .95; }
+
+  /* 1枚目：表紙 */
+  .cover iframe { position: absolute; top: 0; left: -185px; width: 1320px; height: 900px; border: 0;
+                  transform: scale(1.12); transform-origin: top left; }
+  .cover .t { position: absolute; right: 70px; text-align: right; line-height: 1.15; color: var(--primary);
+              paint-order: stroke fill; -webkit-text-stroke: 26px #fff; white-space: nowrap; }
+  .cover .big { top: 120px; font-size: 96px; letter-spacing: -2px; }
+  .cover .sub { top: 300px; font-size: 58px; }
+  .cover .badge { position: absolute; left: 30px; bottom: 90px; font-size: 26px; font-weight: 900; color: #fff;
+                  background: var(--primary-dark); border: 5px solid #fff; border-radius: 40px; padding: 8px 26px;
+                  box-shadow: 0 4px 14px rgba(0,0,0,.12); }
+
+  /* カード */
+  .card { background: var(--card); border: 2px solid var(--border); border-radius: 16px; box-shadow: 0 4px 14px rgba(0,0,0,.05); }
+
+  /* 2枚目：3ステップ */
+  .steps { position: absolute; top: 190px; left: 60px; right: 60px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 26px; }
+  .step { padding: 22px 22px 18px; height: 340px; box-sizing: border-box; position: relative; }
+  .step .num { position: absolute; top: -22px; left: 22px; width: 50px; height: 50px; border-radius: 50%;
+               background: var(--primary); color: #fff; font-size: 28px; display: flex; align-items: center; justify-content: center; }
+  .step .st { font-size: 28px; color: var(--primary); margin: 18px 0 14px; }
+  .step .sd { font-size: 17px; line-height: 1.6; margin: 12px 0 0; }
+  .mock-btn { display: inline-block; background: var(--primary-dark); color: #fff; font-weight: 700; font-size: 18px;
+              border-radius: 24px; padding: 10px 18px; white-space: nowrap; font-size: 16px; }
+  .sheet { border: 1px solid #d5d5d5; font-size: 13px; width: 100%; border-collapse: collapse; background: #fff; }
+  .sheet td, .sheet th { border: 1px solid #e3e3e3; padding: 4px 6px; height: 20px; text-align: left; white-space: nowrap; overflow: hidden; }
+  .sheet th { background: #f3f3f3; color: #777; font-weight: 500; text-align: center; }
+  .sheet .rn { background: #f3f3f3; color: #777; text-align: center; width: 18px; }
+  .sheet .sel { outline: 2px solid #1a73e8; outline-offset: -2px; }
+  .gmenu { border: 1px solid #ddd; border-radius: 6px; background: #fff; font-size: 16px; box-shadow: 0 4px 12px rgba(0,0,0,.12); overflow: hidden; }
+  .gmenu .bar { background: #f1f3f4; padding: 8px 12px; font-weight: 700; color: #333; }
+  .gmenu .it { padding: 9px 14px; color: #333; }
+  .gmenu .it.hl { background: #e8f0fe; font-weight: 700; }
+  .gmenu .sep { border-top: 1px solid #eee; }
+  .note { position: absolute; left: 60px; right: 60px; bottom: 76px; text-align: center; font-size: 19px; color: var(--sub); }
+
+  /* 3枚目：マイリスト */
+  .browser { position: absolute; top: 186px; left: 60px; width: 470px; height: 360px; overflow: hidden; }
+  .browser .chrome { background: #ece9e3; padding: 10px 14px; font-size: 14px; color: #777; border-bottom: 1px solid var(--border); }
+  .browser .bm { background: #f6f4f0; padding: 10px 14px; font-size: 15px; border-bottom: 1px solid var(--border); display: flex; gap: 14px; align-items: center; color: #888; }
+  .browser .bm .me { background: var(--primary-dark); color: #fff; font-weight: 700; border-radius: 6px; padding: 5px 12px;
+                     box-shadow: 0 0 0 4px rgba(140,123,117,.35); }
+  .browser .list { padding: 14px 18px; }
+  .browser .row { display: flex; gap: 10px; align-items: center; padding: 8px 0; border-bottom: 1px dashed var(--border); font-size: 15px; }
+  .browser .row .ic { width: 30px; height: 30px; border-radius: 6px; background: var(--element); border: 1px solid var(--border); }
+  .cursor { position: absolute; font-size: 40px; }
+  .arrow { position: absolute; top: 330px; left: 548px; font-size: 64px; color: var(--primary); }
+  .popup { position: absolute; top: 172px; left: 640px; width: 500px; padding: 22px; box-sizing: border-box; }
+  .popup .pt { font-size: 22px; font-weight: 700; color: #222; margin-bottom: 6px; }
+  .popup .ps { font-size: 17px; margin-bottom: 10px; color: #222; }
+  .popup .ta { border: 1px solid #ccc; border-radius: 4px; height: 170px; font-family: monospace; font-size: 14px; padding: 8px; line-height: 1.6; color: #333; overflow: hidden; }
+  .popup .copy { margin-top: 12px; background: #2b6cb0; color: #fff; text-align: center; font-weight: 700; font-size: 18px; border-radius: 6px; padding: 10px; }
+
+  /* 4枚目：一括更新 */
+  .upd-menu { position: absolute; top: 200px; left: 60px; width: 380px; }
+  .alert { position: absolute; top: 186px; left: 520px; width: 620px; padding: 26px 30px; box-sizing: border-box; }
+  .alert .at { font-size: 26px; font-weight: 700; color: #222; margin-bottom: 14px; }
+  .alert .ab { font-size: 22px; line-height: 1.7; color: #333; }
+  .alert .ab b { color: var(--primary-dark); }
+  .alert .ok { text-align: right; margin-top: 10px; }
+  .alert .ok span { display: inline-block; background: #1a73e8; color: #fff; border-radius: 4px; padding: 6px 22px; font-size: 16px; }
+  .chips { position: absolute; left: 60px; right: 60px; top: 470px; display: flex; gap: 14px; justify-content: center; }
+  .chip { background: var(--card); border: 2px solid var(--primary); color: var(--primary-dark); border-radius: 30px;
+          padding: 10px 18px; font-size: 18px; font-weight: 700; white-space: nowrap; }
+</style>
+</head>
+<body>
+
+<!-- 1枚目：表紙 -->
+<div class="panel cover" id="p1">
+  <iframe src="/docs/index.html"></iframe>
+  <div class="t big maru">キャラシをスプシに保存</div>
+  <div class="t sub maru">ボタン一つで全キャラ更新！<br>CoC6版キャラシ一括バックアップ<br>マイリストから一括取得</div>
+  <div class="badge">キャラクター保管所 対応・無料</div>
+</div>
+
+<!-- 2枚目：3ステップ -->
+<div class="panel" id="p2">
+  <div class="head">
+    <div class="kicker">使い方</div>
+    <h1 class="title maru">かんたん3ステップ</h1>
+  </div>
+  <div class="steps">
+    <div class="card step">
+      <div class="num maru">1</div>
+      <div class="st maru">スプシをコピー</div>
+      <div style="text-align:center; margin-top: 34px;"><span class="mock-btn">📄 スプレッドシートをコピーして使う</span></div>
+      <p class="sd">配布ページのボタンを押して「コピーを作成」。自分のGoogleドライブに保存されます。</p>
+    </div>
+    <div class="card step">
+      <div class="num maru">2</div>
+      <div class="st maru">URLを貼り付け</div>
+      <table class="sheet">
+        <tr><th></th><th>A</th><th>B</th></tr>
+        <tr><td class="rn">1</td><td></td><td>キャラシURL</td></tr>
+        <tr><td class="rn">2</td><td></td><td class="sel">…vampire-blood.net/5219700</td></tr>
+        <tr><td class="rn">3</td><td></td><td>…vampire-blood.net/5118569</td></tr>
+        <tr><td class="rn">4</td><td></td><td>…vampire-blood.net/5563199</td></tr>
+      </table>
+      <p class="sd">「コンバートURL入力」シートに、キャラシのURLを貼るだけ。</p>
+    </div>
+    <div class="card step">
+      <div class="num maru">3</div>
+      <div class="st maru">メニューを押す</div>
+      <div class="gmenu">
+        <div class="bar">📥 コンバート</div>
+        <div class="it hl">URLからコンバート</div>
+        <div class="it sep">全シートを一括更新</div>
+      </div>
+      <p class="sd">1キャラ1シートで、能力値・技能・持ち物まで保存！</p>
+    </div>
+  </div>
+  <div class="note">※はじめて使うときだけ、Googleの許可画面が出ます（配布ページで手順を説明しています）</div>
+  <div class="foot"><span class="name">CoCキャラシ保管スプレッドシート</span><span class="url">nununu-tatata.github.io/charasheet-backup</span></div>
+</div>
+
+<!-- 3枚目：マイリストから一括取得 -->
+<div class="panel" id="p3">
+  <div class="head">
+    <div class="kicker">URLを集めるのも一瞬</div>
+    <h1 class="title maru">マイリストから一括取得</h1>
+  </div>
+  <div class="card browser">
+    <div class="chrome">charasheet.vampire-blood.net/mylist</div>
+    <div class="bm"><span>📁 よく使う</span><span class="me">キャラシURL抽出</span></div>
+    <div class="list">
+      <div class="row"><span class="ic"></span>探索者A　／　職業：探偵</div>
+      <div class="row"><span class="ic"></span>探索者B　／　職業：医師</div>
+      <div class="row"><span class="ic"></span>探索者C　／　職業：記者</div>
+      <div class="row"><span class="ic"></span>探索者D　／　職業：大学生</div>
+      <div class="row"><span class="ic"></span>……</div>
+    </div>
+  </div>
+  <div class="cursor" style="top: 238px; left: 300px;">👆</div>
+  <div class="arrow maru">➜</div>
+  <div class="card popup">
+    <div class="pt">キャラシURL一括抽出</div>
+    <div class="ps"><b>122件</b> のキャラクターシートが見つかりました。</div>
+    <div class="ta">https://charasheet.vampire-blood.net/5219700<br>https://charasheet.vampire-blood.net/5118569<br>https://charasheet.vampire-blood.net/5563199<br>https://charasheet.vampire-blood.net/5551519<br>https://charasheet.vampire-blood.net/5235837<br>…</div>
+    <div class="copy">コピーする</div>
+  </div>
+  <div class="note">ブックマークを押すだけで全ページを読み込み、URLをまとめてコピー。あとはスプシに貼るだけ！</div>
+  <div class="foot"><span class="name">CoCキャラシ保管スプレッドシート</span><span class="url">nununu-tatata.github.io/charasheet-backup</span></div>
+</div>
+
+<!-- 4枚目：ボタン一つで全キャラ更新 -->
+<div class="panel" id="p4">
+  <div class="head">
+    <div class="kicker">キャラシを更新したら</div>
+    <h1 class="title maru">ボタン一つで全キャラ更新</h1>
+  </div>
+  <div class="gmenu upd-menu">
+    <div class="bar">📥 コンバート</div>
+    <div class="it">URLからコンバート</div>
+    <div class="it sep hl">全シートを一括更新</div>
+    <div class="it sep">マイリストからURLをまとめて取得する方法</div>
+  </div>
+  <div class="cursor" style="top: 268px; left: 360px;">👆</div>
+  <div class="card alert">
+    <div class="at">一括更新が完了しました！</div>
+    <div class="ab">更新：<b>3件</b><br>スキップ（変更なし）：<b>119件</b></div>
+    <div class="ok"><span>OK</span></div>
+  </div>
+  <div class="chips">
+    <span class="chip">🔍 変更があったキャラだけ自動で更新</span>
+    <span class="chip">📋 全キャラの能力値を一覧で比較</span>
+    <span class="chip">🎲 チャパレ・ココフォリア用コマも作成</span>
+  </div>
+  <div class="foot"><span class="name">CoCキャラシ保管スプレッドシート</span><span class="url">nununu-tatata.github.io/charasheet-backup</span></div>
+</div>
+
+<script>
+  const p = new URLSearchParams(location.search).get('p') || '1';
+  document.getElementById('p' + p).classList.add('show');
+</script>
+</body>
+</html>
