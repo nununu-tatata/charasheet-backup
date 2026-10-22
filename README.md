@@ -12,6 +12,7 @@
 | `docs/` | 配布ページ（GitHub Pages） |
 | `bookmarklet/` | マイリストからURLを取得するブックマークレットと、そのビルドスクリプト |
 | `admin/` | 管理者用スクリプト（通常は push しない） |
+| `tools/ogp.html` | 共有用サムネイル画像（`docs/ogp.png`）の元 |
 
 ## 開発メモ
 
