@@ -5,6 +5,8 @@ function onOpen() {
         .addSeparator()
         .addItem('全シートを一括更新', 'updateAllSheets')
         .addSeparator()
+        .addItem('古いスプレッドシートから引っ越す', 'importFromOldSpreadsheet')
+        .addSeparator()
         .addItem('マイリストからURLをまとめて取得する方法', 'showBookmarkletGuide')
         .addSeparator()
         .addItem('バージョン情報・更新の確認', 'showVersionInfo')
@@ -16,7 +18,7 @@ function onOpen() {
 // 配布ページの version.json と比較し、新しい版があれば知らせる
 // 新しい版を配布するときは SCRIPT_VERSION と docs/version.json の両方を更新する
 // ============================================================
-const SCRIPT_VERSION = '1.0.2';
+const SCRIPT_VERSION = '1.1.0';
 const DISTRIBUTION_PAGE_URL = 'https://nununu-tatata.github.io/charasheet-backup/';
 const UPDATE_INFO_URL = DISTRIBUTION_PAGE_URL + 'version.json';
 
@@ -1017,4 +1019,102 @@ function updateCharacterSheet_() {
     }
     // 上限に達しているときは更新確認の取得も失敗するため行わない
     SpreadsheetApp.getUi().alert(quotaExceeded ? msg : msg + getUpdateNotice_());
+}
+
+// ============================================================
+// メニュー「古いスプレッドシートから引っ越す」の実行関数
+// 古いスプレッドシートの「シート一覧」B列からキャラシのURLを読み取り、
+// このスプレッドシートの「コンバートURL入力」に追加する（古い方は読むだけで変更しない）
+// ============================================================
+function importFromOldSpreadsheet() {
+    withDocumentLock_(importFromOldSpreadsheet_);
+}
+
+function importFromOldSpreadsheet_() {
+    const ui = SpreadsheetApp.getUi();
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const INPUT_SHEET_NAME = 'コンバートURL入力';
+    const LIST_SHEET_NAME = 'シート一覧';
+
+    const inputSheet = ss.getSheetByName(INPUT_SHEET_NAME);
+    if (!inputSheet) {
+        ui.alert(`「${INPUT_SHEET_NAME}」シートが見つかりません。`);
+        return;
+    }
+
+    const answer = ui.prompt(
+        '古いスプレッドシートから引っ越す',
+        '古いスプレッドシートのURLを貼り付けてください。\n（古いスプレッドシートを開いたときの、ブラウザのアドレス欄のURLです）\n\n' +
+        '古いスプレッドシートの「シート一覧」にあるキャラシのURLを、このスプレッドシートの「コンバートURL入力」に移します。古いスプレッドシートは変更しません。',
+        ui.ButtonSet.OK_CANCEL
+    );
+    if (answer.getSelectedButton() !== ui.Button.OK) return;
+
+    const m = answer.getResponseText().match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/);
+    if (!m) {
+        ui.alert('スプレッドシートのURLではないようです。\n「https://docs.google.com/spreadsheets/d/…」で始まるURLを貼り付けてください。');
+        return;
+    }
+    if (m[1] === ss.getId()) {
+        ui.alert('貼り付けたのは、今開いているスプレッドシートのURLです。\n古い方のスプレッドシートのURLを貼り付けてください。');
+        return;
+    }
+
+    let oldSpreadsheet;
+    try {
+        oldSpreadsheet = SpreadsheetApp.openById(m[1]);
+    } catch (e) {
+        ui.alert('古いスプレッドシートを開けませんでした。\nURLが正しいか、今と同じGoogleアカウントで作ったスプレッドシートか確認してください。');
+        return;
+    }
+
+    const oldListSheet = oldSpreadsheet.getSheetByName(LIST_SHEET_NAME);
+    if (!oldListSheet || oldListSheet.getLastRow() < 2) {
+        ui.alert(`古いスプレッドシートに「${LIST_SHEET_NAME}」が見つからないか、キャラが登録されていません。`);
+        return;
+    }
+
+    // 古い一覧のB列から、キャラクター保管所のURLだけを取り出す（キャラ単位で重複を除く）
+    const keyOf = url => { try { return parseSheetKey(url); } catch (e) { return null; } };
+    const oldUrls = oldListSheet.getRange(2, 2, oldListSheet.getLastRow() - 1, 1).getValues()
+        .map(r => r[0].toString().trim())
+        .filter(u => u !== '' && keyOf(u));
+
+    // すでにこのスプレッドシートに登録済み・入力済みのキャラは追加しない（2回実行しても重複しないように）
+    const knownKeys = new Set();
+    const listSheet = ss.getSheetByName(LIST_SHEET_NAME);
+    if (listSheet && listSheet.getLastRow() >= 2) {
+        listSheet.getRange(2, 1, listSheet.getLastRow() - 1, 2).getValues().forEach(r => {
+            [r[0], r[1]].forEach(v => { const k = keyOf(v); if (k) knownKeys.add(k); });
+        });
+    }
+    const inputLastRow = inputSheet.getLastRow();
+    if (inputLastRow >= 2) {
+        inputSheet.getRange(2, 2, inputLastRow - 1, 1).getValues()
+            .flatMap(r => r[0].toString().split(/\s+/))
+            .forEach(v => { const k = keyOf(v); if (k) knownKeys.add(k); });
+    }
+
+    const newUrls = [];
+    oldUrls.forEach(u => {
+        const k = keyOf(u);
+        if (knownKeys.has(k)) return;
+        knownKeys.add(k);
+        newUrls.push(u);
+    });
+
+    if (newUrls.length === 0) {
+        ui.alert(`古いスプレッドシートの ${oldUrls.length} 件は、すべてこのスプレッドシートに登録済み（または入力済み）です。`);
+        return;
+    }
+
+    // 入力欄の最後のURLの下に追加する
+    const startRow = Math.max(inputLastRow + 1, 2);
+    inputSheet.getRange(startRow, 2, newUrls.length, 1).setValues(newUrls.map(u => [u]));
+
+    let msg = `「${oldSpreadsheet.getName()}」から ${newUrls.length} 件のURLを「${INPUT_SHEET_NAME}」に移しました。`;
+    const skipped = oldUrls.length - newUrls.length;
+    if (skipped > 0) msg += `\n（${skipped} 件は登録済み・入力済みのため追加していません）`;
+    msg += '\n\n続けて、メニューの「URLからコンバート」を押してください。\nキャラが多いときは、何回か実行すると続きから処理されます。';
+    ui.alert(msg);
 }
