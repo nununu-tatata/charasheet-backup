@@ -18,7 +18,7 @@ function onOpen() {
 // 配布ページの version.json と比較し、新しい版があれば知らせる
 // 新しい版を配布するときは SCRIPT_VERSION と docs/version.json の両方を更新する
 // ============================================================
-const SCRIPT_VERSION = '1.1.1';
+const SCRIPT_VERSION = '1.1.2';
 const DISTRIBUTION_PAGE_URL = 'https://nununu-tatata.github.io/charasheet-backup/';
 const UPDATE_INFO_URL = DISTRIBUTION_PAGE_URL + 'version.json';
 
@@ -887,9 +887,9 @@ function updateListSheet_(listSheet, listRow, targetSheet, data, id, url, sheetN
         data.NA8 || "",     // O: EDU
         data.NA9 || "",     // P: HP
         data.NA10 || "",    // Q: MP
-        data.NA11 || "",    // R: 初期SAN
-        data.NA12 || "",    // S: アイデア
-        data.NA13 || "",    // T: 幸運
+        data.NA12 || "",    // R: アイデア
+        data.NA13 || "",    // S: 幸運
+        data.NA14 || "",    // T: 知識
         ...pickSkills('TBAP', 12), // U〜AF: 戦闘技能
         ...pickSkills('TFAP', 12), // AG〜AR: 探索技能
         ...pickSkills('TAAP', 11), // AS〜BC: 行動技能
