@@ -16,7 +16,7 @@ function onOpen() {
 // 配布ページの version.json と比較し、新しい版があれば知らせる
 // 新しい版を配布するときは SCRIPT_VERSION と docs/version.json の両方を更新する
 // ============================================================
-const SCRIPT_VERSION = '1.0.1';
+const SCRIPT_VERSION = '1.0.2';
 const DISTRIBUTION_PAGE_URL = 'https://nununu-tatata.github.io/charasheet-backup/';
 const UPDATE_INFO_URL = DISTRIBUTION_PAGE_URL + 'version.json';
 
@@ -193,11 +193,37 @@ const URLFETCH_QUOTA_MESSAGE =
     '処理できなかったURLはそのまま残っているので、続きから処理されます。';
 
 // ============================================================
+// 二重実行の防止
+// メニューを続けて押すと同じ処理が同時に動き、同じキャラのシートを取り合って壊れるため、
+// 実行中は次の実行を受け付けない
+// ============================================================
+function withDocumentLock_(fn) {
+    const lock = LockService.getDocumentLock();
+    if (!lock.tryLock(1000)) {
+        SpreadsheetApp.getUi().alert('別のコンバート・更新を実行中です。\n終わってから、もう一度実行してください。');
+        return;
+    }
+    try {
+        fn();
+    } finally {
+        lock.releaseLock();
+    }
+}
+
+function updateAllSheets() {
+    withDocumentLock_(updateAllSheets_);
+}
+
+function updateCharacterSheet() {
+    withDocumentLock_(updateCharacterSheet_);
+}
+
+// ============================================================
 // 全シートを一括更新する関数（差分検知あり）
 // シート一覧のB列にあるURL全件に対して処理する
 // 時間切れで止まっても、更新済みのキャラはハッシュ一致でスキップされるため再実行で続きから処理できる
 // ============================================================
-function updateAllSheets() {
+function updateAllSheets_() {
     const startTime = Date.now();
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     const LIST_SHEET_NAME = 'シート一覧';
@@ -346,7 +372,11 @@ function convertOneUrl(ss, inputUrl, responseText) {
     const targetSheet = templateSheet.copyTo(ss);
     try {
         const insertedRows = writeCharacterData_(targetSheet, data);
+        // 書き込みは後でまとめて反映されることがあり、入力規則違反などのエラーが遅れて出るため、
+        // チャパレ（エラーでも続行する部分）に進む前と、旧シートと差し替える前に確定させる
+        SpreadsheetApp.flush();
         writeChatPalette_(targetSheet, data, url, responseText, insertedRows);
+        SpreadsheetApp.flush();
     } catch (e) {
         ss.deleteSheet(targetSheet);
         throw e;
@@ -900,10 +930,16 @@ function writeChatPalette_(targetSheet, data, url, responseText, rowOffset) {
         const paletteResult = generateChatPaletteData(data, url, palSettings);
         writePaletteResult_(targetSheet, rowOffset, paletteResult);
 
-        // onEdit再生成用にJSON・URL・行のずれをAB1〜AB3に保存（ネット不要でオフライン対応）
-        targetSheet.getRange('AB1').setValue(responseText);
+        // onEdit再生成用にURL・行のずれ・JSONをAB2/AB3/AB1に保存（ネット不要でオフライン対応）
         targetSheet.getRange('AB2').setValue(url);
         targetSheet.getRange('AB3').setValue(rowOffset);
+        // 1セルに入るのは5万文字まで。超える場合は保存せず、設定変更時の自動再生成だけ使えない状態にする
+        const CELL_CHAR_LIMIT = 50000;
+        if (responseText.length <= CELL_CHAR_LIMIT) {
+            targetSheet.getRange('AB1').setValue(responseText);
+        }
+        // チャパレ部分のエラーはここで確定させ、本体のコンバートは続ける
+        SpreadsheetApp.flush();
     } catch (palErr) {
         // チャパレ生成に失敗しても本体のコンバートは完了しているのでエラーログのみ
         Logger.log('チャパレ生成エラー: ' + palErr.message);
@@ -915,7 +951,7 @@ function writeChatPalette_(targetSheet, data, url, responseText, rowOffset) {
 // 「コンバートURL入力」シートのB列（2行目以降）に複数URLを入力できる
 // 成功したURLは入力欄から消え、エラーと時間切れで未処理のURLだけが残る（再実行で続きから処理できる）
 // ============================================================
-function updateCharacterSheet() {
+function updateCharacterSheet_() {
     const startTime = Date.now();
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     const INPUT_SHEET_NAME = 'コンバートURL入力';

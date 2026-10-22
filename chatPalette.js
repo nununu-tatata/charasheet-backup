@@ -138,7 +138,7 @@ function generateProfileText_sheet(data, stats, specStats, extractedData, dbValu
 
   if (includeItems) {
     profile.push("【持ち物】");
-    const items = Array.isArray(data.item_name) ? data.item_name.filter(i => i) : [];
+    const items = safeArray(data.item_name).filter(i => i);
     if (items.length > 0) chunkArray(items, 3).forEach(c => profile.push(c.join("/")));
     else profile.push("なし");
   }
