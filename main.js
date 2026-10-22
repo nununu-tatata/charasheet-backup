@@ -144,6 +144,20 @@ function computeHash(text) {
 }
 
 // ============================================================
+// GASの「1日に外部サイトから取得できる回数」の上限エラーかどうか
+// この状態では残りも全部失敗するため、すぐに処理を止める
+// ============================================================
+function isUrlFetchQuotaError_(e) {
+    const message = (e && e.message) || '';
+    return /urlfetch/i.test(message) && /(too many times|多すぎ)/i.test(message);
+}
+const URLFETCH_QUOTA_MESSAGE =
+    '⛔ Googleの制限により、このアカウントでは今日はこれ以上キャラシを取得できません。\n' +
+    '（GASで外部サイトからデータを取得できる1日の回数の上限に達しました）\n\n' +
+    '時間をおいて（目安：24時間後）、もう一度実行してください。\n' +
+    '処理できなかったURLはそのまま残っているので、続きから処理されます。';
+
+// ============================================================
 // 全シートを一括更新する関数（差分検知あり）
 // シート一覧のB列にあるURL全件に対して処理する
 // 時間切れで止まっても、更新済みのキャラはハッシュ一致でスキップされるため再実行で続きから処理できる
@@ -179,6 +193,7 @@ function updateAllSheets() {
     let skippedCount = 0;
     let errorCount = 0;
     let timedOut = false;
+    let quotaExceeded = false;
     const errorMessages = [];
 
     for (let i = 0; i < allRows.length; i++) {
@@ -215,6 +230,10 @@ function updateAllSheets() {
         try {
             responseText = UrlFetchApp.fetch(jsonUrl).getContentText();
         } catch (e) {
+            if (isUrlFetchQuotaError_(e)) {
+                quotaExceeded = true;
+                break;
+            }
             errorCount++;
             errorMessages.push(`ID ${key}: 取得失敗 - ${e.message}`);
             continue;
@@ -243,6 +262,11 @@ function updateAllSheets() {
     if (timedOut) {
         msg = msg.replace('一括更新が完了しました！', '⏱ 時間の上限に近づいたため、途中で止めました。');
         msg += '\n\nもう一度「全シートを一括更新」を実行してください。\n更新済みのキャラは自動でスキップされ、続きから処理されます。';
+    }
+    if (quotaExceeded) {
+        msg = msg.replace('一括更新が完了しました！', URLFETCH_QUOTA_MESSAGE);
+        SpreadsheetApp.getUi().alert(msg);
+        return;
     }
     SpreadsheetApp.getUi().alert(msg + getUpdateNotice_());
 }
@@ -895,6 +919,7 @@ function updateCharacterSheet() {
     const successNames = [];
     const errors = [];
     let remainingUrls = [];
+    let quotaExceeded = false;
     for (let i = 0; i < urls.length; i++) {
         if (Date.now() - startTime > TIME_LIMIT_MS) {
             remainingUrls = urls.slice(i);
@@ -903,6 +928,12 @@ function updateCharacterSheet() {
         try {
             successNames.push(convertOneUrl(ss, urls[i], null));
         } catch (e) {
+            if (isUrlFetchQuotaError_(e)) {
+                // 失敗したURLも含めて未処理として残す
+                quotaExceeded = true;
+                remainingUrls = urls.slice(i);
+                break;
+            }
             errors.push({ url: urls[i], message: e.message });
         }
     }
@@ -914,8 +945,8 @@ function updateCharacterSheet() {
         inputSheet.getRange(2, 2, leftUrls.length, 1).setValues(leftUrls.map(u => [u]));
     }
 
-    let msg = remainingUrls.length > 0
-        ? `⏱ 時間の上限に近づいたため、途中で止めました。\n\n`
+    let msg = quotaExceeded ? `${URLFETCH_QUOTA_MESSAGE}\n\n`
+        : remainingUrls.length > 0 ? `⏱ 時間の上限に近づいたため、途中で止めました。\n\n`
         : `コンバート・更新が完了しました！\n\n`;
     if (successNames.length > 0) msg += `✅ 成功 ${successNames.length}件:\n` + successNames.map(n => `　${n}`).join('\n');
     if (errors.length > 0) {
@@ -923,7 +954,9 @@ function updateCharacterSheet() {
         msg += `\n\nエラーになったURLは入力欄に残しています。確認して、不要なら削除してください。`;
     }
     if (remainingUrls.length > 0) {
-        msg += `\n\n⏳ 未処理 ${remainingUrls.length}件\nもう一度「URLからコンバート」を実行すると続きから処理します。`;
+        msg += `\n\n⏳ 未処理 ${remainingUrls.length}件`;
+        if (!quotaExceeded) msg += `\nもう一度「URLからコンバート」を実行すると続きから処理します。`;
     }
-    SpreadsheetApp.getUi().alert(msg + getUpdateNotice_());
+    // 上限に達しているときは更新確認の取得も失敗するため行わない
+    SpreadsheetApp.getUi().alert(quotaExceeded ? msg : msg + getUpdateNotice_());
 }
