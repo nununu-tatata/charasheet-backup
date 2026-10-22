@@ -144,6 +144,18 @@ function computeHash(text) {
 }
 
 // ============================================================
+// キャラクター保管所からキャラシのJSONを取得する
+// 非公開のキャラシはログインしていないと 404 になるため、分かりやすいメッセージにする
+// ============================================================
+function fetchCharacterJson_(key) {
+    const res = UrlFetchApp.fetch(`https://charasheet.vampire-blood.net/${key}.json`, { muteHttpExceptions: true });
+    const code = res.getResponseCode();
+    if (code === 404) throw new Error('キャラシが見つかりません（非公開設定か、削除された可能性があります）');
+    if (code !== 200) throw new Error(`キャラクター保管所からの取得に失敗しました（エラー: ${code}）`);
+    return res.getContentText();
+}
+
+// ============================================================
 // GASの「1日に外部サイトから取得できる回数」の上限エラーかどうか
 // この状態では残りも全部失敗するため、すぐに処理を止める
 // ============================================================
@@ -221,14 +233,13 @@ function updateAllSheets() {
             errorMessages.push(`${listRowNum}行目: ${e.message}`);
             continue;
         }
-        const jsonUrl = `https://charasheet.vampire-blood.net/${key}.json`;
 
         // サーバー負荷軽減のためリクエスト前に少し待機（500ms）
         Utilities.sleep(500);
 
         let responseText = '';
         try {
-            responseText = UrlFetchApp.fetch(jsonUrl).getContentText();
+            responseText = fetchCharacterJson_(key);
         } catch (e) {
             if (isUrlFetchQuotaError_(e)) {
                 quotaExceeded = true;
@@ -288,7 +299,7 @@ function convertOneUrl(ss, inputUrl, responseText) {
     // --- 1. JSONデータの取得（responseTextが渡されなければ自分でフェッチ） ---
     const sheetKey = parseSheetKey(inputUrl);
     if (!responseText) {
-        responseText = UrlFetchApp.fetch(`https://charasheet.vampire-blood.net/${sheetKey}.json`).getContentText();
+        responseText = fetchCharacterJson_(sheetKey);
     }
 
     const data = JSON.parse(responseText);
