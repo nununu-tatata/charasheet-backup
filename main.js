@@ -18,7 +18,7 @@ function onOpen() {
 // 配布ページの version.json と比較し、新しい版があれば知らせる
 // 新しい版を配布するときは SCRIPT_VERSION と docs/version.json の両方を更新する
 // ============================================================
-const SCRIPT_VERSION = '1.1.3';
+const SCRIPT_VERSION = '1.2.0';
 const DISTRIBUTION_PAGE_URL = 'https://nununu-tatata.github.io/charasheet-backup/';
 const UPDATE_INFO_URL = DISTRIBUTION_PAGE_URL + 'version.json';
 
