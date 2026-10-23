@@ -167,6 +167,7 @@ function getDamageRoll_palette(name, dbSuffix, isAddBrackets, prefix) {
 //   includeStatVariables: boolean, ← K164が'Tekey向け'の場合true（//STR=xx）
 //   includeStatx5: boolean,      ← N164 ON/OFF
 //   includeStatRes: boolean,     ← Q164 ON/OFF
+//   isSecret: boolean,           ← T164 ON/OFF（ダイスロールの先頭にSを付けるシークレットダイス）
 //   includeStatusProfile, includeSkillListProfile, includeTraits,
 //   includeWeaponsProfile, includeItems, includePersonalData
 // }
@@ -178,8 +179,9 @@ function generateChatPaletteData(data, url, settings) {
   const isAddBrackets = settings.isAddBrackets || false;
   const isUseFolding = settings.isUseFolding || false;
   const capVal = 100;
-  const prefix = "";
-  const command = baseCommand;
+  // シークレットダイス：ダイスロールの先頭に S を付ける（:SAN+ などのコマンドには付けない）
+  const prefix = settings.isSecret ? "S" : "";
+  const command = prefix + baseCommand;
 
   function getStatValue(naKey, npKey) {
     const cv = parseInt(data[npKey]) || 0;
@@ -285,7 +287,7 @@ function generateChatPaletteData(data, url, settings) {
         if (dmgLine) categoryLines.push(dmgLine);
         if (baseName.includes("応急手当")) {
           const label = isAddBrackets ? "【応急手当回復値】" : "応急手当回復値";
-          categoryLines.push(`1d3 ${label}`);
+          categoryLines.push(`${prefix}1d3 ${label}`);
         }
       }
     }
@@ -340,7 +342,7 @@ function generateChatPaletteData(data, url, settings) {
     stats.forEach(stat => {
       if (!stat.val) return;
       const sName = isAddBrackets ? `【${stat.name}対抗】` : `${stat.name}対抗`;
-      resLines.push(`${resCmd}({${stat.name}}-対抗値) ${sName}`);
+      resLines.push(`${prefix}${resCmd}({${stat.name}}-対抗値) ${sName}`);
     });
     if (resLines.length > 0) {
       if (isUseFolding) palette.push("###対抗ロール");

@@ -80,7 +80,7 @@ function showBookmarkletGuide() {
 // テンプレートでの行番号。持ち物・武器・追加技能が多いキャラは途中で行を挿入するため、
 // 実際の位置は「挿入した行数（AB3に保存）」だけ下にずれる
 // ============================================================
-const PALETTE_SETTING_ROW = 164; // チャパレ設定（B/E/H/K/N/Q列）
+const PALETTE_SETTING_ROW = 164; // チャパレ設定（B/E/H/K/N/Q/T列）
 const PROFILE_SETTING_ROW = 168; // プロフィール設定（B/E/H/K/N/Q列）
 const PALETTE_OUTPUT_ROW = 171;  // チャパレ（B列）・プロフィール（N列）
 const CCFOLIA_OUTPUT_ROW = 180;  // CCFOLIAデータ（B列）
@@ -99,6 +99,7 @@ function readPaletteSettings_(sheet, rowOffset) {
         includeStatVariables:    tekeyMode === 'Tekey向け',
         includeStatx5:           get(`N${palRow}`) === 'ON',
         includeStatRes:          get(`Q${palRow}`) === 'ON',
+        isSecret:                get(`T${palRow}`) === 'ON',
         includeStatusProfile:    get(`B${profRow}`) !== 'OFF',
         includeSkillListProfile: get(`E${profRow}`) !== 'OFF',
         includeTraits:           get(`H${profRow}`) === 'ON',
@@ -117,7 +118,7 @@ function writePaletteResult_(sheet, rowOffset, result) {
 
 // ============================================================
 // onEdit トリガー：設定セルが変更されたらチャパレ・プロフを自動再生成
-// 対象セル: チャパレ設定行（B/E/H/K列）、プロフィール設定行（B/E/H/K/N/Q列）
+// 対象セル: チャパレ設定行（B/E/H/K/N/Q/T列）、プロフィール設定行（B/E/H/K/N/Q列）
 // ============================================================
 function onEdit(e) {
     if (!e) return;
@@ -131,7 +132,7 @@ function onEdit(e) {
     const rowOffset = Number(sheet.getRange('AB3').getValue()) || 0;
 
     // 設定エリアのセルかどうか判定
-    const isPalRow = (row === PALETTE_SETTING_ROW + rowOffset && [2,5,8,11].includes(col));
+    const isPalRow = (row === PALETTE_SETTING_ROW + rowOffset && [2,5,8,11,14,17,20].includes(col));
     const isProfRow = (row === PROFILE_SETTING_ROW + rowOffset && [2,5,8,11,14,17].includes(col));
     if (!isPalRow && !isProfRow) return;
 
