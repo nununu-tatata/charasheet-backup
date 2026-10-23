@@ -112,7 +112,7 @@
         </header>
 
         <!-- ===== ヒーロー ===== -->
-        <section class="hero">
+        <section class="hero" id="copy">
             <span class="version-badge" id="version-badge">最新版 v-.-.-</span>
             <p class="hero-lead">
                 キャラクター保管所のキャラシを、<b>自分のGoogleスプレッドシート</b>にまとめて保存。<br>
@@ -162,7 +162,8 @@
             <ol class="steps">
                 <li class="step">
                     <p class="step-title">スプレッドシートをコピーする</p>
-                    <p>上の「<b>スプレッドシートをコピーして使う</b>」ボタンを押し、出てきた画面で「<b>コピーを作成</b>」を押します。</p>
+                    <p><b>このページのいちばん上</b>にある「<a href="#copy"><b>スプレッドシートをコピーして使う</b></a>」ボタンを押し、出てきた画面で「<b>コピーを作成</b>」を押します。</p>
+                    <p>コピーしたスプレッドシートが開きます。ここから先の操作は、<b>スプレッドシートの画面</b>で行います。</p>
                 </li>
                 <li class="step">
                     <p class="step-title">URLを貼り付ける</p>
@@ -170,14 +171,17 @@
                     <div class="tip-box">
                         <p class="tip-title">💡 キャラがたくさんあるときは</p>
                         <p>キャラクター保管所のマイリストから、<b>全キャラのURLをまとめてコピー</b>できます。1つずつコピーする必要はありません。</p>
-                        <p>やり方は、下の「<a href="#bookmarklet">マイリストからURLをまとめて取得</a>」か、スプレッドシートのメニュー <span class="menu-path">📥 コンバート</span> → <span class="menu-path">マイリストからURLをまとめて取得する方法</span> で確認できます。</p>
+                        <p>やり方は、下の「<a href="#bookmarklet">マイリストからURLをまとめて取得</a>」か、スプレッドシート上部のメニュー <span class="menu-path">📥 コンバート</span> → <span class="menu-path">マイリストからURLをまとめて取得する方法</span> で確認できます。</p>
                         <a href="#bookmarklet" class="btn-sub">🔖 まとめて取得する方法を見る</a>
                     </div>
                 </li>
                 <li class="step">
                     <p class="step-title">コンバートを実行する</p>
-                    <p>上のメニューの <span class="menu-path">📥 コンバート</span> → <span class="menu-path">URLからコンバート</span> を押します。</p>
-                    <p>※メニューが出ていない場合は、ページを再読み込みして少し待ってください。</p>
+                    <p><b>スプレッドシートの画面上部</b>、「ファイル」「編集」「表示」…と並んでいるメニューの<b>いちばん右</b>に <span class="menu-path">📥 コンバート</span> があります。押して、<span class="menu-path">URLからコンバート</span> を選びます。</p>
+                    <div class="sheet-menubar" aria-hidden="true">
+                        <span>ファイル</span><span>編集</span><span>表示</span><span>挿入</span><span>表示形式</span><span>データ</span><span>ツール</span><span>拡張機能</span><span>ヘルプ</span><span class="hl">📥 コンバート</span>
+                    </div>
+                    <p>※<span class="menu-path">📥 コンバート</span> が出ていない場合は、スプレッドシートの画面を再読み込み（<span class="key">F5</span>）して、10秒ほど待ってください。</p>
                 </li>
                 <li class="step">
                     <p class="step-title">初回だけ：Googleの許可画面に答える</p>
@@ -229,7 +233,7 @@
                     <p>次のどれかで確認できます。</p>
                     <ul>
                         <li>コンバートや一括更新が終わったときのメッセージに「<b>🆕 新しいバージョン（v〇.〇.〇）が公開されています</b>」と表示される</li>
-                        <li>メニューの <span class="menu-path">📥 コンバート</span> → <span class="menu-path">バージョン情報・更新の確認</span> を押す</li>
+                        <li>スプレッドシート上部のメニューの <span class="menu-path">📥 コンバート</span> → <span class="menu-path">バージョン情報・更新の確認</span> を押す</li>
                         <li>このページ上部の「<b>最新版</b>」の番号と見比べる（変更内容は、ページ下の最終更新日を押すと見られます）</li>
                     </ul>
                 </li>
@@ -241,7 +245,7 @@
                     <p class="step-title">古いスプレッドシートからキャラを移す</p>
                     <ol>
                         <li>古いスプレッドシートを開き、ブラウザのアドレス欄の<b>URLをコピー</b>する</li>
-                        <li>新しいスプレッドシートで、メニューの <span class="menu-path">📥 コンバート</span> → <span class="menu-path">古いスプレッドシートから引っ越す</span> を押す</li>
+                        <li>新しいスプレッドシートで、上部のメニューの <span class="menu-path">📥 コンバート</span> → <span class="menu-path">古いスプレッドシートから引っ越す</span> を押す</li>
                         <li>出てきた入力欄に、古いスプレッドシートのURLを貼り付けて「<b>OK</b>」を押す（全キャラのURLが「コンバートURL入力」に移ります。古いスプレッドシートは変更されません）</li>
                         <li><span class="menu-path">URLからコンバート</span> を押す（キャラが多いときは、何回か実行すると続きから処理されます）</li>
                     </ol>

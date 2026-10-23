@@ -339,3 +339,12 @@ header { flex-wrap: wrap; gap: 12px; }
 .step .tip-box p { margin: 4px 0; }
 .step .tip-box .tip-title { font-weight: 700; font-size: 14px; color: var(--primary-color); margin: 0 0 4px; }
 .tip-box .btn-sub { display: inline-block; text-decoration: none; margin-top: 8px; }
+
+/* スプレッドシートのメニューバーの見本 */
+.sheet-menubar {
+    display: flex; flex-wrap: wrap; gap: 2px 4px; align-items: center;
+    background: #f9fbfd; border: 1px solid #dadce0; border-radius: 6px;
+    padding: 6px 8px; margin: 8px 0; font-size: 12px; color: #3c4043;
+}
+.sheet-menubar span { padding: 2px 6px; border-radius: 4px; }
+.sheet-menubar .hl { background: #e8f0fe; color: #1a73e8; font-weight: 700; outline: 2px solid #1a73e8; }
