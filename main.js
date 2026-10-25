@@ -18,7 +18,7 @@ function onOpen() {
 // 配布ページの version.json と比較し、新しい版があれば知らせる
 // 新しい版を配布するときは SCRIPT_VERSION と docs/version.json の両方を更新する
 // ============================================================
-const SCRIPT_VERSION = '1.2.0';
+const SCRIPT_VERSION = '1.2.1';
 const DISTRIBUTION_PAGE_URL = 'https://nununu-tatata.github.io/charasheet-backup/';
 const UPDATE_INFO_URL = DISTRIBUTION_PAGE_URL + 'version.json';
 
@@ -728,19 +728,28 @@ function writeCharacterData_(targetSheet, data) {
                 else otherVal += diff;
             }
 
-            if (jobVal > 0 || intVal > 0 || growthVal > 0 || otherVal > 0 || checkboxVal !== "") {
-                defaultSkillDict[name] = {
-                    job: jobVal, interest: intVal, growth: growthVal,
-                    other: otherVal, checkbox: checkboxVal
-                };
-            }
+            // マイナスの値（職業による減少、特徴表、シナリオでの減少など）も反映するため、0以外はすべて書き込む
+            // 初期値も、時代設定（大正・ヴィクトリアなど）で現代日本と違うことがあるので持っておく
+            defaultSkillDict[name] = {
+                job: jobVal, interest: intVal, growth: growthVal,
+                other: otherVal, checkbox: checkboxVal,
+                defaultVal: arrDefault[index] === undefined || arrDefault[index] === "" ? null : defVal
+            };
         });
     });
+
+    // テンプレートの初期値（F列。数式で計算されているものもある）
+    const templateInitialVals = targetSheet.getRange(`F18:F${17 + skillRangeVals.length}`).getValues();
 
     for (let i = 0; i < skillRangeVals.length; i++) {
         let skillName = skillRangeVals[i][1].toString().trim();
         if (skillName && defaultSkillDict[skillName]) {
             const row = 18 + i;
+            // 初期値がテンプレートと違うときだけ、キャラクター保管所の値で上書きする（同じならテンプレートの数式を残す）
+            const skillDefault = defaultSkillDict[skillName].defaultVal;
+            if (skillDefault !== null && Number(templateInitialVals[i][0]) !== skillDefault) {
+                targetSheet.getRange(`F${row}`).setValue(skillDefault);
+            }
             let cbVal = defaultSkillDict[skillName].checkbox;
             if (cbVal === "1") {
                 targetSheet.getRange(`B${row}`).setValue(true);
@@ -750,10 +759,10 @@ function writeCharacterData_(targetSheet, data) {
                 cell.setValue(cbVal);
             }
 
-            if (defaultSkillDict[skillName].job > 0) targetSheet.getRange(`G${row}`).setValue(defaultSkillDict[skillName].job);
-            if (defaultSkillDict[skillName].interest > 0) targetSheet.getRange(`H${row}`).setValue(defaultSkillDict[skillName].interest);
-            if (defaultSkillDict[skillName].growth > 0) targetSheet.getRange(`I${row}`).setValue(defaultSkillDict[skillName].growth);
-            if (defaultSkillDict[skillName].other > 0) targetSheet.getRange(`J${row}`).setValue(defaultSkillDict[skillName].other);
+            if (defaultSkillDict[skillName].job !== 0) targetSheet.getRange(`G${row}`).setValue(defaultSkillDict[skillName].job);
+            if (defaultSkillDict[skillName].interest !== 0) targetSheet.getRange(`H${row}`).setValue(defaultSkillDict[skillName].interest);
+            if (defaultSkillDict[skillName].growth !== 0) targetSheet.getRange(`I${row}`).setValue(defaultSkillDict[skillName].growth);
+            if (defaultSkillDict[skillName].other !== 0) targetSheet.getRange(`J${row}`).setValue(defaultSkillDict[skillName].other);
         }
     }
 
@@ -836,10 +845,10 @@ function writeCharacterData_(targetSheet, data) {
 
             targetSheet.getRange(`C${rowNum}`).setValue(skill.name);
             targetSheet.getRange(`F${rowNum}`).setValue(skill.defaultVal);
-            if (skill.job > 0) targetSheet.getRange(`G${rowNum}`).setValue(skill.job);
-            if (skill.interest > 0) targetSheet.getRange(`H${rowNum}`).setValue(skill.interest);
-            if (skill.growth > 0) targetSheet.getRange(`I${rowNum}`).setValue(skill.growth);
-            if (skill.other > 0) targetSheet.getRange(`J${rowNum}`).setValue(skill.other);
+            if (skill.job !== 0) targetSheet.getRange(`G${rowNum}`).setValue(skill.job);
+            if (skill.interest !== 0) targetSheet.getRange(`H${rowNum}`).setValue(skill.interest);
+            if (skill.growth !== 0) targetSheet.getRange(`I${rowNum}`).setValue(skill.growth);
+            if (skill.other !== 0) targetSheet.getRange(`J${rowNum}`).setValue(skill.other);
         }
     });
 
