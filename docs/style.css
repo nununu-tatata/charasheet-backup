@@ -348,3 +348,12 @@ header { flex-wrap: wrap; gap: 12px; }
 }
 .sheet-menubar span { padding: 2px 6px; border-radius: 4px; }
 .sheet-menubar .hl { background: #e8f0fe; color: #1a73e8; font-weight: 700; outline: 2px solid #1a73e8; }
+
+/* 重要なお知らせ（メンテナンスなど） */
+.notice-banner {
+    background: #fdecea; border: 2px solid #d93025; border-radius: var(--border-radius);
+    color: #b3261e; padding: 14px 18px; margin-bottom: 20px; font-size: 14px;
+}
+.notice-banner p { margin: 4px 0; }
+.notice-banner .notice-title { font-weight: 700; font-size: 16px; margin-bottom: 6px; }
+[data-theme="dark"] .notice-banner { background: #3a1f1d; border-color: #f28b82; color: #f6aea9; }
